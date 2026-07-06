@@ -3,7 +3,7 @@
 # ♞ Caissa Chess Overlay
 
 **An always-on-top desktop assistant that finds a chess board anywhere on your
-screen, reads the position, and shows you the best move — automatically.**
+screen, reads the position, and shows you the best move, automatically.**
 
 Named after *Caissa*, the goddess of chess.
 
@@ -26,22 +26,23 @@ Named after *Caissa*, the goddess of chess.
 
 ## Highlights
 
-- **Zero setup.** One self-contained `Caissa.exe` — Python, the libraries, and
-  the Stockfish engine are all bundled inside. No install, no dependencies, no
-  admin rights.
-- **Finds the board by itself.** Scans the screen, locates the board by its
+- **Zero setup.** One self-contained `Caissa.exe` with Python, the libraries
+  and the Stockfish engine all bundled inside. Nothing to install, no admin
+  rights needed.
+- **Finds the board by itself.** It scans the screen, locates the board by its
   checkerboard pattern, snaps to the exact squares, learns the pieces, and
-  detects whether you're **White or Black** — all automatically.
-- **Reads any flat 2-D board.** Works on essentially any website or app; it
-  reconstructs the full position from pixels every scan, so it self-corrects,
-  joins games already in progress, and never desyncs.
-- **Unmistakable guidance.** The piece to move, the squares (`F3 → G5`), a
-  plain-English line, and on the mini-board a **yellow** from-square, **green**
-  to-square and an arrow.
-- **Fast and strong.** First suggestion in ~100 ms, then a live-streamed deeper
-  search up to your chosen time budget. Ignores small example/diagram boards.
-- **Portable.** Drop it on a USB stick and run it on any Windows PC, with an
-  optional mode that keeps your settings on the stick and leaves nothing behind.
+  works out whether you're White or Black.
+- **Reads any flat 2-D board.** Works on essentially any website or app. The
+  position is rebuilt from pixels on every scan, so it self-corrects, can join
+  a game already in progress, and never falls out of sync.
+- **Clear guidance.** The piece to move, the squares (`F3 → G5`), a
+  plain-English line, and an arrow on the mini-board with the from-square in
+  yellow and the to-square in green.
+- **Fast and strong.** The first suggestion arrives in about 100 ms, then a
+  live-streamed deeper search keeps improving it up to your chosen time
+  budget. Small example and diagram boards are ignored.
+- **Portable.** Drop it on a USB stick and run it on any Windows PC. An
+  optional mode keeps your settings on the stick and leaves nothing behind.
 
 <div align="center">
 <img src="docs/dashboard.png" alt="The Caissa dashboard" width="300">
@@ -51,20 +52,19 @@ Named after *Caissa*, the goddess of chess.
 
 | You want to... | Get this | You need |
 |----------------|----------|----------|
-| **Just use the app** | **`Caissa.exe`** from the [**Releases**](../../releases) page | Nothing else — Python, all libraries and the Stockfish engine are inside the exe. Download, double-click, play. |
-| **Read, run or modify the code** | This repository (clone or *Code → Download ZIP*) | Python 3.10+, the pip requirements, and a Stockfish binary — see [Run from source](#run-from-source-developers). |
+| **Just use the app** | `Caissa.exe` from the [**Releases**](../../releases) page | Nothing else. Python, the libraries and the Stockfish engine are all inside the exe. Download it and double-click. |
+| **Read, run or modify the code** | This repository (clone it, or *Code → Download ZIP*) | Python 3.10+, the pip requirements, and a Stockfish binary. See [Run from source](#run-from-source-developers). |
 
-> ⚠️ The green **Code → Download ZIP** button gives you the **source code
-> only** — `Caissa.exe` is *not* in the repository (it's ~160 MB). To use the
-> app without installing anything, download it from
-> [**Releases**](../../releases).
+> **Note:** the green **Code → Download ZIP** button gives you the source code
+> only. `Caissa.exe` is not in the repository (it's around 160 MB). If you
+> just want to use the app, download it from [**Releases**](../../releases).
 
 ## Quick start (players)
 
-Get `Caissa.exe` from the [**Releases**](../../releases) page. Then just
-double-click it and open a chess game anywhere on screen — Caissa finds the
-board, sets itself up, and shows your move when it's your turn. Four buttons are
-all you need:
+Get `Caissa.exe` from the [**Releases**](../../releases) page, double-click
+it, and open a chess game anywhere on screen. Caissa finds the board, sets
+itself up, and shows your move when it's your turn. Four buttons are all you
+need:
 
 | Button | What it does |
 |--------|--------------|
@@ -79,20 +79,21 @@ bigger, clearer board.
 ## System requirements
 
 **To run `Caissa.exe`:** 64-bit **Windows 10 or 11**, and a CPU with **AVX2**
-(Intel from ~2013, AMD from ~2015 — effectively any modern machine). Nothing
-else — no Python, no Stockfish install. First launch takes a few seconds while
-the bundled engine unpacks to a temp folder, and an unsigned exe may trigger a
-one-time SmartScreen prompt (*More info → Run anyway*).
+(Intel from around 2013, AMD from around 2015; effectively any modern
+machine). Nothing else is needed: no Python, no Stockfish install. The first
+launch takes a few seconds while the bundled engine unpacks to a temp folder,
+and an unsigned exe may trigger a one-time SmartScreen prompt
+(*More info → Run anyway*).
 
-**No AVX2?** Caissa checks at startup and tells you plainly instead of silently
-showing no moves. On such a machine, download a non-AVX2 Stockfish (the
-`x86-64` or `x86-64-sse41-popcnt` build) from
+**No AVX2?** Caissa checks at startup and tells you plainly instead of
+silently showing no moves. On such a machine, download a non-AVX2 Stockfish
+(the `x86-64` or `x86-64-sse41-popcnt` build) from
 [stockfishchess.org](https://stockfishchess.org/download/) and point
 **Settings → Custom engine** at it.
 
 ## Run from source (developers)
 
-Everything below this point is for working on the code — none of it is needed
+Everything below this point is for working on the code; none of it is needed
 to just use the app. Requires **Python 3.10+**.
 
 ```bash
@@ -104,7 +105,7 @@ python run.py
 
 ### Getting the Stockfish engine
 
-The engine binary is **not committed to the repo** (it's large and GPL-licensed),
+The engine binary is not committed to the repo (it's large and GPL-licensed),
 so for a source checkout you need to provide it once:
 
 1. Download Stockfish for Windows from **<https://stockfishchess.org/download/>**
@@ -112,8 +113,8 @@ so for a source checkout you need to provide it once:
 2. Unzip it and place the executable at **`engine/stockfish.exe`**.
 
 Caissa looks for the engine at `engine/stockfish.exe`, then next to the app,
-then on your system `PATH`. (When you build `Caissa.exe`, this binary is bundled
-inside it — end users never need to do this.)
+then on your system `PATH`. (When you build `Caissa.exe`, this binary is
+bundled inside it, so end users never need to do this.)
 
 Diagnostic: `python run.py --engine-selftest` writes engine + data-dir info to
 `%TEMP%\caissa_selftest.json`.
@@ -130,9 +131,9 @@ and icon are bundled inside; build scratch is auto-cleaned).
 
 ## Tests
 
-The vision pipeline (board finding + full-position reading) and core logic have
-a self-contained test suite that needs **no chess engine and no display**, so it
-runs anywhere — including CI:
+The vision pipeline (board finding + full-position reading) and core logic
+have a self-contained test suite that needs no chess engine and no display,
+so it runs anywhere, including CI:
 
 ```bash
 python -m pip install numpy opencv-python chess pytest
@@ -156,25 +157,27 @@ flowchart LR
     G --> A
 ```
 
-**Find → propose → validate.** The finder scores every candidate board rectangle
-(multi-scale checkerboard statistics via integral images), snaps the best ones
-to the exact squares by fitting a comb of grid lines (piece-robust, sub-pixel),
-and only *proposes* them. A candidate is accepted **only if the board reader
-validates it** — either it's a fresh starting position (pieces and your colour
-are learned on the spot) or, with templates already known, it reads as a *legal*
-position with high confidence. Wrong candidates simply fail validation, so false
-locks are impossible — including the app's own on-screen mini-board, whose
-window rectangle is explicitly excluded.
+**Find → propose → validate.** The finder scores every candidate board
+rectangle (multi-scale checkerboard statistics via integral images), snaps
+the best ones to the exact squares by fitting a comb of grid lines
+(piece-robust, sub-pixel), and only *proposes* them. A candidate is accepted
+only if the board reader validates it: either it's a fresh starting position
+(pieces and your colour are learned on the spot), or, with templates already
+known, it reads as a *legal* position with high confidence. Wrong candidates
+simply fail validation, so false locks are impossible. That includes the
+app's own on-screen mini-board, whose window rectangle is explicitly
+excluded.
 
 **Reading, not tracking.** The full position is reconstructed from pixels on
 every scan (template-match each square → reassemble the board → resolve
 side-to-move by legality), so it self-corrects and can join games in progress.
 
-**Responsive at full strength.** The engine search is *streamed*: the first move
-appears in ~100 ms and refines live up to the think-time cap. It is aborted the
-instant the on-screen position changes, so thinking never blocks detection; on
-the opponent's turn it ponders to warm the engine's hash. A cheap frame-diff
-gate skips the expensive read while nothing on the board moves.
+**Responsive at full strength.** The engine search is *streamed*: the first
+move appears in about 100 ms and refines live up to the think-time cap. It is
+aborted the instant the on-screen position changes, so thinking never blocks
+detection; on the opponent's turn it ponders to warm the engine's hash. A
+cheap frame-diff gate skips the expensive read while nothing on the board
+moves.
 
 ### Project layout
 
@@ -205,18 +208,19 @@ Caissa Chess Overlay/
 
 ## Settings
 
-- **Thinking time** — how long the engine may keep improving the move (the first
-  suggestion is always instant; this caps the deep polish).
-- **CPU cores** — how much of the machine the engine may use. The default is
-  half your cores, which stays polite to the game you're playing in; slide up
-  for a faster/deeper search or down to be gentler on the system.
+- **Thinking time**: how long the engine may keep improving the move. The
+  first suggestion is always instant; this caps the deep polish.
+- **CPU cores**: how much of the machine the engine may use. The default is
+  half your cores, which stays polite to the game you're playing in. Slide up
+  for a deeper search or down to be gentler on the system.
 - **Move detection** sensitivity, plus manual **Set board box / Calibrate /
   Debug shot** fallbacks for unusual themes.
 
 ## Data & portable mode
 
-By default, settings and the learned board are stored in **`%LOCALAPPDATA%\Caissa`**
-— *not* in the app folder — so the install directory stays clean.
+By default, settings and the learned board are stored in
+**`%LOCALAPPDATA%\Caissa`**, not in the app folder, so the install directory
+stays clean.
 
 Put a **`portable.txt`** file next to `Caissa.exe` (included in this repo) to
 switch to **portable mode**: everything is then kept in a `Caissa-data` folder
@@ -225,10 +229,11 @@ host machine. Delete the file to revert.
 
 ## Limitations
 
-- **Flat 2-D boards only** — 3-D / perspective board views aren't supported.
-- Whose-move-it-is can be ambiguous on a cold mid-game join — press **Switch
-  Colors** if it guessed wrong (it self-corrects once a move is played).
-- Auto-detection is tuned for common board themes; on an unusual one, use the
+- **Flat 2-D boards only.** 3-D and perspective board views aren't supported.
+- Whose move it is can be ambiguous on a cold mid-game join. Press
+  **Switch Colors** if it guessed wrong; it self-corrects once a move is
+  played.
+- Auto-detection is tuned for common board themes. On an unusual one, use the
   manual fallbacks in **Settings → Troubleshooting**.
 
 ## Credits & licence
@@ -243,5 +248,5 @@ attributions, exact versions and licence texts for every component are in
 [`THIRD_PARTY.txt`](THIRD_PARTY.txt).
 
 Because it bundles and links against GPLv3 components, **Caissa Chess
-Overlay is distributed under the GNU General Public License v3** — see
+Overlay is distributed under the GNU General Public License v3**; see
 [`LICENSE`](LICENSE) for the complete text.
