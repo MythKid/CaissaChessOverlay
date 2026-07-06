@@ -10,9 +10,9 @@ from PyQt6.QtCore import Qt, QByteArray, QRectF
 from PyQt6.QtGui import QColor, QPainter
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
-    QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QFrame,
-    QFileDialog, QDialog, QComboBox, QFormLayout, QLineEdit, QDialogButtonBox,
-    QMessageBox, QSlider, QSizeGrip, QSizePolicy,
+    QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
+    QFrame, QFileDialog, QDialog, QComboBox, QFormLayout, QLineEdit,
+    QDialogButtonBox, QMessageBox, QSlider, QSizeGrip, QSizePolicy,
 )
 
 from .mini_board import MiniBoard
@@ -361,6 +361,10 @@ class OverlayWindow(QWidget):
             Qt.WindowType.WindowStaysOnTopHint |
             Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        # Qt.Tool windows are excluded from quit-on-last-window-closed by
+        # default, so without this the app's event loop keeps running as an
+        # invisible zombie process after the ✕ button closes the window.
+        self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, True)
         self.setWindowOpacity(0.97)
 
     def paintEvent(self, event):
@@ -773,9 +777,20 @@ class OverlayWindow(QWidget):
         self._drag_pos = None
 
     def closeEvent(self, e):
-        self.stop_analysis()
-        # Remember the window size the user chose.
+        # Remember the window size the user chose (saved BEFORE the worker
+        # wind-down so it persists even if the process has to be force-ended).
         self.config.window_w = self.width()
         self.config.window_h = self.height()
         self.config.save()
+        if self.worker:
+            self.worker.stop()
+            # Short, bounded wind-down only: the abort callback stops any
+            # running search almost immediately, but a wedged engine must
+            # never hold the close hostage. app.main() force-terminates the
+            # process after the event loop returns, so nothing can linger.
+            self.worker.wait(2000)
         e.accept()
+        # Closing the main HUD means quitting the app. Explicit, because
+        # WA_QuitOnClose alone would keep the event loop alive if any other
+        # window (a dialog, the region selector) happened to be open.
+        QApplication.instance().quit()

@@ -12,8 +12,9 @@ from __future__ import annotations
 import os
 import sys
 
+from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from .config import Config
 from .ui.overlay import OverlayWindow
@@ -65,6 +66,18 @@ def _engine_selftest() -> int:
     return 0 if out.get("ok") else 1
 
 
+def _check_engine_at_startup(parent, config):
+    """Verify the bundled engine actually runs on THIS machine and tell the
+    user loudly if it can't (e.g. the CPU lacks AVX2), instead of leaving
+    them staring at an app that never shows a recommendation."""
+    from .engine import health_check
+    from .engine_locator import resolve_engine
+
+    ok, problem = health_check(resolve_engine(config.stockfish_path))
+    if not ok:
+        QMessageBox.critical(parent, "Caissa - engine problem", problem)
+
+
 def main():
     if "--engine-selftest" in sys.argv:
         sys.exit(_engine_selftest())
@@ -86,7 +99,18 @@ def main():
     win.resize(config.window_w or 330, config.window_h or 700)
     win.show()
 
-    sys.exit(app.exec())
+    # After the window has painted, make sure the engine can actually run on
+    # this machine (a ~0.1s handshake; pops a clear dialog if the CPU can't
+    # execute the bundled binary).
+    QTimer.singleShot(400, lambda: _check_engine_at_startup(win, config))
+
+    rc = app.exec()
+    # Guarantee the process actually terminates when the window is closed.
+    # A wedged engine search or a lingering helper thread (e.g. the engine's
+    # transport thread) must never leave an invisible Caissa.exe running.
+    # Settings are already saved in closeEvent, and the Windows job object
+    # kills the engine subprocess the instant this process exits.
+    os._exit(rc)
 
 
 if __name__ == "__main__":

@@ -47,10 +47,21 @@ Named after *Caissa*, the goddess of chess.
 <img src="docs/dashboard.png" alt="The Caissa dashboard" width="300">
 </div>
 
-## Quick start
+## Player or developer?
 
-Get `Caissa.exe` from the [**Releases**](../../releases) page (or build it — see
-[below](#build-the-executable); it's too large to keep in the repo). Then just
+| You want to... | Get this | You need |
+|----------------|----------|----------|
+| **Just use the app** | **`Caissa.exe`** from the [**Releases**](../../releases) page | Nothing else — Python, all libraries and the Stockfish engine are inside the exe. Download, double-click, play. |
+| **Read, run or modify the code** | This repository (clone or *Code → Download ZIP*) | Python 3.10+, the pip requirements, and a Stockfish binary — see [Run from source](#run-from-source-developers). |
+
+> ⚠️ The green **Code → Download ZIP** button gives you the **source code
+> only** — `Caissa.exe` is *not* in the repository (it's ~160 MB). To use the
+> app without installing anything, download it from
+> [**Releases**](../../releases).
+
+## Quick start (players)
+
+Get `Caissa.exe` from the [**Releases**](../../releases) page. Then just
 double-click it and open a chess game anywhere on screen — Caissa finds the
 board, sets itself up, and shows your move when it's your turn. Four buttons are
 all you need:
@@ -67,15 +78,22 @@ bigger, clearer board.
 
 ## System requirements
 
-**To run `Caissa.exe`:** 64-bit **Windows 10 or 11**, and a CPU from ~2013 or
-newer (needs AVX2 — effectively any modern machine). Nothing else — no Python,
-no Stockfish install. First launch takes a few seconds while the bundled engine
-unpacks to a temp folder, and an unsigned exe may trigger a one-time SmartScreen
-prompt (*More info → Run anyway*).
+**To run `Caissa.exe`:** 64-bit **Windows 10 or 11**, and a CPU with **AVX2**
+(Intel from ~2013, AMD from ~2015 — effectively any modern machine). Nothing
+else — no Python, no Stockfish install. First launch takes a few seconds while
+the bundled engine unpacks to a temp folder, and an unsigned exe may trigger a
+one-time SmartScreen prompt (*More info → Run anyway*).
 
-## Run from source
+**No AVX2?** Caissa checks at startup and tells you plainly instead of silently
+showing no moves. On such a machine, download a non-AVX2 Stockfish (the
+`x86-64` or `x86-64-sse41-popcnt` build) from
+[stockfishchess.org](https://stockfishchess.org/download/) and point
+**Settings → Custom engine** at it.
 
-Requires **Python 3.10+**.
+## Run from source (developers)
+
+Everything below this point is for working on the code — none of it is needed
+to just use the app. Requires **Python 3.10+**.
 
 ```bash
 git clone <your-repo-url>
@@ -162,7 +180,8 @@ gate skips the expensive read while nothing on the board moves.
 
 ```
 Caissa Chess Overlay/
-├── Caissa.exe              the application (self-contained; run this)
+├── Caissa.exe              the application (not in the repo - download from
+│                           Releases or produce it with build.py)
 ├── run.py                  run from source
 ├── build.py                rebuild Caissa.exe
 ├── requirements.txt

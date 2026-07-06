@@ -31,7 +31,7 @@ from .board_reader import (BoardReader, detect_orientation, resolve_board,
                            looks_like_fresh_game)
 from .board_finder import find_candidates, overlap_frac
 from .board_state import game_phase, describe_move
-from .engine import ChessEngine
+from .engine import ChessEngine, is_cpu_unsupported
 from .engine_locator import resolve_engine
 from .config import TEMPLATES_PATH, DEBUG_DIR
 
@@ -47,6 +47,11 @@ FRAME_STATIC_EPS = 0.6
 FRAME_CHANGED_EPS = 0.9
 FORCE_READ_SECS = 1.0      # do a full read at least this often (loss detection)
 ABORT_CHECK_SECS = 0.20    # how often the abort callback peeks at the screen
+FAST_CONFIRM_SECS = 0.03   # re-read interval while a move is settling: once a
+                           # change is seen, confirm it at this fast rate so the
+                           # engine starts almost immediately (steady-state CPU
+                           # cost is unchanged - the normal poll_interval still
+                           # governs the static screen)
 
 
 class AnalysisWorker(QThread):
@@ -298,14 +303,15 @@ class AnalysisWorker(QThread):
                 continue
             lost_since = None
 
-            # Require the read to be identical twice (piece finished moving).
+            # Require the read to be identical twice (piece finished moving),
+            # confirming at the fast rate so the engine starts sooner.
             if placement != last_raw:
                 last_raw, stable = placement, 0
-                time.sleep(self.config.poll_interval)
+                time.sleep(FAST_CONFIRM_SECS)
                 continue
             stable += 1
             if stable < self.config.stability_frames:
-                time.sleep(self.config.poll_interval)
+                time.sleep(FAST_CONFIRM_SECS)
                 continue
 
             if self._switch_turn_requested:
@@ -438,7 +444,12 @@ class AnalysisWorker(QThread):
             return True
         except Exception as e:
             self._engine = None
-            self.error.emit(f"Couldn't start the chess engine: {e}")
+            if is_cpu_unsupported(e):
+                self.error.emit("This CPU can't run the built-in engine "
+                                "(needs AVX2). Pick a non-AVX2 Stockfish "
+                                "under Settings → Custom engine.")
+            else:
+                self.error.emit(f"Couldn't start the chess engine: {e}")
             return False
 
     def _auto_setup(self, img, orientation) -> bool:

@@ -50,9 +50,15 @@ def _load(data):
 
 def test_config_migrates_old_versions_to_max_defaults():
     cfg = _load({"depth": 16, "change_threshold": 0.12})   # pre-v3
-    assert cfg.depth == 30
+    assert cfg.depth == 99
     assert abs(cfg.think_time - 2.5) < 1e-9
     assert cfg.stability_frames == 1
+    assert cfg.version == CONFIG_VERSION
+
+
+def test_config_v4_uncaps_depth():
+    cfg = _load({"depth": 30, "version": 4})
+    assert cfg.depth == 99
     assert cfg.version == CONFIG_VERSION
 
 

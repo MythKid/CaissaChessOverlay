@@ -75,7 +75,7 @@ TEMPLATES_PATH = os.path.join(DATA_DIR, "board_templates.npz")
 DEBUG_DIR = os.path.join(DATA_DIR, "debug_shots")
 
 
-CONFIG_VERSION = 4
+CONFIG_VERSION = 5
 
 
 @dataclass
@@ -87,11 +87,12 @@ class Config:
     # Which colour sits at the BOTTOM of the board on screen:
     #   "white" -> normal orientation (default), "black" -> board is flipped.
     orientation: str = "white"
-    # Engine search depth cap in plies. Generous on purpose: the think-time
-    # cap is what bounds latency, and a low depth cap would waste the time
-    # budget in easy positions (the engine would stop early instead of
-    # searching deeper).
-    depth: int = 30
+    # Engine search depth cap in plies. Effectively unbounded on purpose: the
+    # think-time cap is what bounds latency, and any reachable depth cap would
+    # waste the time budget in easy positions (the engine would stop early
+    # instead of searching deeper - exactly the positions, like won endgames,
+    # where the extra depth converts an advantage into a forced win).
+    depth: int = 99
     # Hard time cap (seconds) for the deep search. The engine stops at depth
     # OR time, whichever comes first - this is what bounds recommendation lag.
     # Exposed as the "Thinking time" slider in Settings.
@@ -146,6 +147,8 @@ class Config:
                     cfg.stability_frames = 1
                 if old < 4:
                     cfg.depth = 30   # depth cap; think_time bounds latency
+                if old < 5:
+                    cfg.depth = 99   # uncap depth; think_time bounds latency
                 if old < CONFIG_VERSION:
                     cfg.version = CONFIG_VERSION
                 return cfg

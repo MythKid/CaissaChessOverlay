@@ -27,6 +27,95 @@ import chess.engine
 _NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 _POPEN_ARGS = {"creationflags": _NO_WINDOW} if os.name == "nt" else {}
 
+# Windows STATUS_ILLEGAL_INSTRUCTION (0xC000001D), as both the unsigned exit
+# code subprocess reports and the signed form some wrappers surface. This is
+# what the bundled AVX2 Stockfish dies with on a CPU that lacks AVX2.
+_ILLEGAL_INSTRUCTION_CODES = (3221225501, -1073741795)
+
+CPU_UNSUPPORTED_MSG = (
+    "This computer's CPU can't run the built-in chess engine.\n\n"
+    "The bundled Stockfish requires AVX2 instructions (Intel CPUs from "
+    "~2013, AMD from ~2015). On this machine the engine crashes the moment "
+    "it starts, so no move recommendations can be shown.\n\n"
+    "Fix: download a non-AVX2 Stockfish build (the \"x86-64\" or "
+    "\"x86-64-sse41-popcnt\" download) from stockfishchess.org, then select "
+    "it under Settings → Custom engine."
+)
+
+
+def is_cpu_unsupported(exc: BaseException) -> bool:
+    """True if the exception looks like the engine dying with an illegal
+    instruction - i.e. the binary uses CPU instructions this machine lacks."""
+    text = repr(exc)
+    return any(str(code) in text for code in _ILLEGAL_INSTRUCTION_CODES)
+
+
+def health_check(path: str | None) -> tuple[bool, str]:
+    """Quickly verify the engine binary actually runs on this machine.
+
+    Runs the engine directly with a plain `uci` handshake (no python-chess,
+    no asyncio) so we get the raw process exit code - which lets us tell a
+    CPU-incompatibility crash apart from a missing or broken binary.
+    Returns (ok, human-readable problem description).
+    """
+    if not path or not os.path.isfile(path):
+        return False, "Chess engine not found. Reinstall the app."
+    try:
+        proc = subprocess.run(
+            [path], input="uci\nquit\n", capture_output=True, text=True,
+            timeout=15, **_POPEN_ARGS)
+    except subprocess.TimeoutExpired:
+        return False, "The chess engine did not respond (timed out)."
+    except OSError as e:
+        return False, f"The chess engine could not be launched: {e}"
+    if proc.returncode in _ILLEGAL_INSTRUCTION_CODES:
+        return False, CPU_UNSUPPORTED_MSG
+    if "uciok" not in (proc.stdout or ""):
+        return False, ("The chess engine started but did not answer "
+                       f"correctly (exit code {proc.returncode}).")
+    return True, "ok"
+
+
+def _total_ram_mb() -> int:
+    """Total physical RAM in MB (best effort; assumes 8 GB if unknown)."""
+    if os.name == "nt":
+        try:
+            import ctypes
+
+            class _MemoryStatusEx(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_uint32),
+                            ("dwMemoryLoad", ctypes.c_uint32),
+                            ("ullTotalPhys", ctypes.c_uint64),
+                            ("ullAvailPhys", ctypes.c_uint64),
+                            ("ullTotalPageFile", ctypes.c_uint64),
+                            ("ullAvailPageFile", ctypes.c_uint64),
+                            ("ullTotalVirtual", ctypes.c_uint64),
+                            ("ullAvailVirtual", ctypes.c_uint64),
+                            ("ullAvailExtendedVirtual", ctypes.c_uint64)]
+
+            stat = _MemoryStatusEx()
+            stat.dwLength = ctypes.sizeof(stat)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+                return int(stat.ullTotalPhys // (1024 * 1024))
+        except Exception:
+            pass
+    else:
+        try:
+            pages = os.sysconf("SC_PHYS_PAGES")
+            page_size = os.sysconf("SC_PAGE_SIZE")
+            return int(pages * page_size // (1024 * 1024))
+        except (ValueError, OSError, AttributeError):
+            pass
+    return 8192
+
+
+def _auto_hash_mb() -> int:
+    """Engine hash table size: an eighth of system RAM, clamped to
+    [256, 1024] MB. A bigger hash means positions searched while pondering
+    the opponent's turn are still in memory when it's our move - the reply
+    search starts deeper instead of from scratch."""
+    return max(256, min(1024, _total_ram_mb() // 8))
+
 
 class _WinJob:
     """Windows Job Object with KILL_ON_JOB_CLOSE: any engine process assigned
@@ -135,7 +224,7 @@ class ChessEngine:
         n = self.threads if self.threads and self.threads > 0 else default_threads()
         n = max(1, min(int(n), cpu))
         try:
-            self._engine.configure({"Threads": n, "Hash": 256})
+            self._engine.configure({"Threads": n, "Hash": _auto_hash_mb()})
         except Exception:
             pass
 
