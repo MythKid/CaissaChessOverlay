@@ -1,0 +1,25 @@
+# Build output
+/build/
+/dist/
+*.spec
+
+# The built app (large, self-contained; rebuild with `python build.py`)
+/Caissa.exe
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Bundled engine binary (large; see README to obtain it)
+/engine/stockfish.exe
+
+# Local runtime data (stored in %LOCALAPPDATA%\Caissa, or ./Caissa-data in
+# portable mode)
+/config.json
+/board_templates.npz
+/debug_shots/
+/Caissa-data/

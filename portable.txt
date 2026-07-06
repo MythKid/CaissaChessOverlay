@@ -1,0 +1,13 @@
+Caissa Chess Overlay - PORTABLE MODE
+====================================
+
+While this file sits next to Caissa.exe, the app runs in PORTABLE mode:
+all settings and the learned board are stored in the "Caissa-data" folder
+right here beside the app - so they travel with it (e.g. on a USB stick)
+and NOTHING is written to the host computer.
+
+To carry it around: copy Caissa.exe and this portable.txt together (or copy
+this whole folder) onto a USB stick, then run Caissa.exe on any Windows PC.
+
+Delete this file to switch back to the normal per-user location
+(%LOCALAPPDATA%\Caissa), which leaves the app folder itself untouched.

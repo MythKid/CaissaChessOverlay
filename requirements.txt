@@ -1,0 +1,7 @@
+# Caissa Chess Overlay - Python dependencies
+# Install with:  pip install -r requirements.txt
+PyQt6>=6.6           # GUI toolkit (always-on-top overlay, dialogs, SVG board)
+mss>=9.0             # fast, lightweight screen capture
+opencv-python>=4.8   # image processing: board finding + position reading
+numpy>=1.24          # array math for the vision layer
+chess>=1.11          # python-chess: rules, SVG rendering, UCI engine bridge

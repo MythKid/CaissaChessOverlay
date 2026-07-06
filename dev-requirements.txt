@@ -1,0 +1,5 @@
+# Extra tooling for developing / building Caissa (not needed to run the app).
+# Install with:  pip install -r requirements.txt -r dev-requirements.txt
+pyinstaller>=6.0      # builds Caissa.exe (python build.py)
+pytest>=7.0           # runs the test suite (python -m pytest tests/)
+pip-audit>=2.7        # optional: scan dependencies for known CVEs
